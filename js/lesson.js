@@ -76,3 +76,48 @@ intervalId = setInterval(() => {
 
 /////////////////////////////////////////////////////////////////////////
 
+const somInput = document.querySelector("#som");
+const usdInput = document.querySelector("#usd");
+const eurInput = document.querySelector("#eur");
+
+const converter = (element, ...targets) => {
+    element.oninput = () => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "../data/summ.json");
+        xhr.setRequestHeader("Content-type", "application/json");
+        xhr.send();
+
+        xhr.onload = () => {
+            const data = JSON.parse(xhr.response);
+
+            if (element.value === "") {
+                targets.forEach((t) => { t.value = ""; });
+                return;
+            }
+
+            const value = parseFloat(element.value);
+            if (isNaN(value)) {
+                targets.forEach((t) => { t.value = ""; });
+                return;
+            }
+
+            targets.forEach((target) => {
+                if (element.id === "som") {
+                    if (target.id === "usd") target.value = (value / data.usd).toFixed(2);
+                    if (target.id === "eur") target.value = (value / data.eur).toFixed(2);
+                } else if (element.id === "usd") {
+                    if (target.id === "som") target.value = (value * data.usd).toFixed(2);
+                    if (target.id === "eur") target.value = ((value * data.usd) / data.eur).toFixed(2);
+                } else if (element.id === "eur") {
+                    if (target.id === "som") target.value = (value * data.eur).toFixed(2);
+                    if (target.id === "usd") target.value = ((value * data.eur) / data.usd).toFixed(2);
+                }
+            });
+        };
+    };
+};
+
+converter(somInput, usdInput, eurInput);
+converter(usdInput, eurInput, somInput);
+converter(eurInput, somInput, usdInput);
+
